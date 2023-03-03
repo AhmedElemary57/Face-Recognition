@@ -4,7 +4,7 @@ from PIL import Image
 
 # Define the path to the dataset folder
 # this is the path to the dataset in colab files.
-dataset_path = 'C:\\Users\\Zeyad\'s G3\\Desktop\\archive'
+dataset_path = 'C:\\Users\\USER\\Downloads\\archive'
 
 # Define the size of the images
 image_size = (112, 92)
@@ -26,7 +26,7 @@ def load_data():
                 img = np.asarray(img, float).flatten()
                 D[(i - 1) * 10 + j - 1] = img
             # Set the label for the current image
-            y[(i - 1) * 10 + j - 1] = i
+            y[(i - 1) * 10 + j - 1] = int(i)
 
     # Print the shapes of the data matrix and label vector
     assert D.shape == (400, 10304)
