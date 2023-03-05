@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+from sklearn import metrics
+from sklearn.neighbors import KNeighborsClassifier
 
 def means_vectors(data, lables):
     # Reshape the DataFrame into groups for each label
@@ -23,7 +25,7 @@ def between_class_scatter_matrix(means, overall_mean, n):
     SB = np.zeros((overall_mean.shape[0], overall_mean.shape[0]))
     for i in range(means.shape[0]):
         mean_diff = means[i, :] - overall_mean
-        SB += n[i] * mean_diff.dot(mean_diff.T)
+        SB += n[i] * np.dot(mean_diff, mean_diff.T)
     return SB
 
 def centralize( data, means, labels ):
@@ -43,19 +45,19 @@ def get_eigns(data):
     eigenvalues = eigenvalues[idxs]
     eigenvectors = eigenvectors[idxs]
     return eigenvalues, eigenvectors
-def LDA(trainingData, trainingDataLabels, testingData, testingDataLabels, dimensions_needed):
+def get_projection_matrix(trainingData, trainingDataLabels, testingData, testingDataLabels, dimensions_needed):
     # Compute the mean vector for each class in the training data
     means = means_vectors(pd.DataFrame(trainingData), trainingDataLabels).values
+    print("means", pd.DataFrame(means))
     # Compute the overall sample mean of the training data
     overall_mean = pd.DataFrame(trainingData).mean().values
-    print(pd.DataFrame(means))
-    print(pd.DataFrame(overall_mean))
+    print("overall_mean", pd.DataFrame(overall_mean))
     # Compute the number of samples in each class (which is assumed to be equal) and equal 5 sample for each class.
     n = np.zeros(means.shape[0])+5
     print(n)
 
     sb = between_class_scatter_matrix(means, overall_mean, n)
-    print(pd.DataFrame(sb))
+    print("between_class_scatter_matrix",pd.DataFrame(sb))
     Z = centralize(trainingData, means, trainingDataLabels)
     print("Z",pd.DataFrame(Z))
     S = within_class_scatter_matrix(Z)
@@ -66,8 +68,38 @@ def LDA(trainingData, trainingDataLabels, testingData, testingDataLabels, dimens
     print("eigenvalues", pd.DataFrame(eigenvalues))
     print("eigenvectors", pd.DataFrame(eigenvectors))
     eigenvalues = eigenvalues[0: dimensions_needed]
-    eigenvectors = eigenvectors[0: dimensions_needed] # this should be the needed projection matrix
+    eigenvectors = eigenvectors[:, :dimensions_needed] # this should be the needed projection matrix
+    pd.DataFrame(eigenvectors).to_csv('projection.csv', index=False)
     return eigenvectors
+
+
+def project_training_testing(training_data, training_dataLabels, testing_data, testing_dataLabels, dimensions_needed, load_or_compute):
+    if(load_or_compute == 1):
+        projection_matrix = get_projection_matrix(trainingData, trainingDataLabels, testingData, testingDataLabels, dimensions_needed)
+    else:
+        projection_matrix = pd.read_csv('projection.csv').applymap(lambda x: complex(x)).values
+
+    print("projection_matrix",pd.DataFrame(projection_matrix))
+    print("training_data",pd.DataFrame(training_data))
+
+    new_training_data = np.dot(training_data, projection_matrix)
+    new_testing_data = np.dot(testing_data, projection_matrix)
+
+    return new_training_data, new_testing_data
+
+def calculate_accuracy(training_data, training_dataLabels, testing_data, testing_dataLabels, dimensions_needed, load_or_compute):
+    no_of_neigbours = [1, 3, 5, 7]  # For KNN
+    NEW_TRAIN , NEW_TEST = project_training_testing(training_data, training_dataLabels, testing_data, testing_dataLabels, dimensions_needed, load_or_compute)
+    for n in no_of_neigbours:
+        # Create KNN Classifier
+        knn = KNeighborsClassifier(n_neighbors=n)
+        # Train the model using the training set
+        training_dataLabels = np.ravel(testing_dataLabels)
+        knn.fit(NEW_TRAIN, training_dataLabels)
+        # Predict the response for test dataset
+        y_pred = knn.predict(NEW_TEST)
+        accuary = metrics.accuracy_score(testing_dataLabels, y_pred)
+        print(f"{n}                       {accuary}\n")
 
 import dataloading as dl
 import pca
@@ -76,6 +108,5 @@ import pandas as pd
 
 
 trainingData, trainingDataLabels, testingData, testingDataLabels = dl.load_data()
-
-print(pd.DataFrame(LDA(trainingData, trainingDataLabels, testingData, testingDataLabels, 39)))
+calculate_accuracy(trainingData, trainingDataLabels, testingData, testingDataLabels, 39, 0)
 
