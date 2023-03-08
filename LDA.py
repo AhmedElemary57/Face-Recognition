@@ -3,6 +3,7 @@ import numpy as np
 from sklearn import metrics
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+import matplotlib.pyplot as plt
 
 def means_vectors(data, lables):
     print(data)
@@ -101,15 +102,24 @@ def calculate_accuracy(number_of_neighbors, training_data, training_data_labels,
     accuracy = metrics.accuracy_score(testing_data_labels, y_predict)
     return accuracy
 
+def plot_lda_accuracy(training_data, training_data_labels, testing_data, testing_data_labels, dimensions_needed, load_or_compute):
+    k_values = [1, 3, 5, 7]
+    accuracies =[]
+    for k in k_values:
+        accuracies.append(calculate_accuracy(k, training_data, training_data_labels, testing_data, testing_data_labels, dimensions_needed,load_or_compute))
+    plt.plot(k_values, accuracies)
+    plt.xlabel('k_values')
+    plt.ylabel('accuracy')
+    plt.title('LDA accuracy vs KNN')
+    plt.show()
 
 import dataloading as dl
 import pca
-import numpy as np
-import pandas as pd
 
 
 trainingData, trainingDataLabels, testingData, testingDataLabels = dl.load_data()
 print(calculate_accuracy(1, trainingData, trainingDataLabels, testingData, testingDataLabels, 39, 0))
+plot_lda_accuracy(trainingData, trainingDataLabels, testingData, testingDataLabels, 39, 0)
 # Perform LDA
 lda = LinearDiscriminantAnalysis(n_components=39)
 lda.fit(trainingData, trainingDataLabels)
