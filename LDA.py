@@ -43,7 +43,12 @@ def within_class_scatter_matrix(Z):
 
 def get_eigns(data):
     eigenvalues, eigenvectors = np.linalg.eigh(data)
-    return eigenvalues, eigenvectors
+    # Sort the eigenvalues in descending order
+    sort_indices = np.argsort(eigenvalues)[::-1]
+    sorted_eigenvalues = eigenvalues[sort_indices]
+    # Sort the eigenvectors using the same indices
+    sorted_eigenvectors = eigenvectors[:, sort_indices]
+    return sorted_eigenvalues, sorted_eigenvectors
 def get_projection_matrix(trainingData, trainingDataLabels, testingData, testingDataLabels, dimensions_needed):
     # Compute the mean vector for each class in the training data
     means = means_vectors(pd.DataFrame(trainingData), trainingDataLabels).values
@@ -63,7 +68,7 @@ def get_projection_matrix(trainingData, trainingDataLabels, testingData, testing
     S_inverse = np.linalg.inv(S)
     print("S matrix", pd.DataFrame(S))
     print("S_inverse ", pd.DataFrame(S_inverse))
-    eigenvalues, eigenvectors = np.linalg.eigh(np.matmul(S_inverse, sb))
+    eigenvalues, eigenvectors = get_eigns(np.matmul(S_inverse, sb))
     print("eigenvalues", pd.DataFrame(eigenvalues))
     print("eigenvectors", eigenvectors)
     eigenvalues = eigenvalues[0: dimensions_needed]
@@ -76,8 +81,7 @@ def project_training_testing(training_data, training_dataLabels, testing_data, t
     if(load_or_compute == 1):
         projection_matrix = get_projection_matrix(trainingData, trainingDataLabels, testingData, testingDataLabels, dimensions_needed)
     else:
-        projection_matrix = pd.read_csv('projection.csv').applymap(lambda x: complex(x)).values
-
+        projection_matrix = pd.read_csv('projection.csv')
     print("projection_matrix", pd.DataFrame(projection_matrix))
     print("training_data", pd.DataFrame(training_data))
 
@@ -86,19 +90,17 @@ def project_training_testing(training_data, training_dataLabels, testing_data, t
 
     return new_training_data, new_testing_data
 
-def calculate_accuracy(training_data, training_dataLabels, testing_data, testing_dataLabels, dimensions_needed, load_or_compute):
+def calculate_accuracy(number_of_neighbors, training_data, training_data_labels, testing_data, testing_data_labels, dimensions_needed, load_or_compute):
     no_of_neighbours = [1, 3, 5, 7]  # For KNN
-    NEW_TRAIN , NEW_TEST = project_training_testing(training_data, training_dataLabels, testing_data, testing_dataLabels, dimensions_needed, load_or_compute)
-    for n in no_of_neighbours:
-        # Create KNN Classifier
-        knn = KNeighborsClassifier(n_neighbors=n)
-        # Train the model using the training set
-        training_dataLabels = np.ravel(testing_dataLabels)
-        knn.fit(NEW_TRAIN, training_dataLabels)
-        # Predict the response for test dataset
-        y_pred = knn.predict(NEW_TEST)
-        accuary = metrics.accuracy_score(testing_dataLabels, y_pred)
-        print(f"{n}                       {accuary}\n")
+    training_data_projected, testing_data_projected = project_training_testing(training_data, training_data_labels, testing_data, testing_data_labels, dimensions_needed, load_or_compute)
+    knn = KNeighborsClassifier(number_of_neighbors)
+    # Train the model using the training set
+    knn.fit(training_data_projected, training_data_labels)
+    # Predict the response for test dataset
+    y_predict = knn.predict(testing_data_projected)
+    accuracy = metrics.accuracy_score(testing_data_labels, y_predict)
+    return accuracy
+
 
 import dataloading as dl
 import pca
@@ -107,8 +109,7 @@ import pandas as pd
 
 
 trainingData, trainingDataLabels, testingData, testingDataLabels = dl.load_data()
-project_training_testing(trainingData, trainingDataLabels, testingData, testingDataLabels, 39, 1)
-
+print(calculate_accuracy(1, trainingData, trainingDataLabels, testingData, testingDataLabels, 39, 0))
 # Perform LDA
 lda = LinearDiscriminantAnalysis(n_components=39)
 lda.fit(trainingData, trainingDataLabels)
