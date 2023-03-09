@@ -1,6 +1,7 @@
 import os
 
 import numpy as np
+import pandas as pd
 from PIL import Image
 
 # Define the path to the dataset folder
@@ -8,7 +9,7 @@ from PIL import Image
 dataset_path = 'C:\\archive'
 
 # Define the size of the images
-image_size = (112, 92)
+image_size = (92, 112)
 
 
 def load_data():
@@ -31,6 +32,7 @@ def load_data():
 
     # Print the shapes of the data matrix and label vector
     assert D.shape == (400, 10304)
+    print(pd.DataFrame(D))
     print('D shape:', D.shape)  # should print (400, 10304) if it is true
     assert y.shape == (400,)
     print('y shape:', y.shape)  # should print (400,) if it is true

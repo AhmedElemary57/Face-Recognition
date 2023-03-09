@@ -1,5 +1,6 @@
 import pandas as pd
 
+import LDA as lda
 import dataloading as dl
 import pca
 
@@ -17,3 +18,6 @@ A.to_csv('reduced_training_set.csv')
 file = open('mean.txt', 'w')
 file.write(str(mean))
 file.close()
+# test lda
+print(lda.calculate_accuracy(1, trainingData, trainingDataLabels, testingData, testingDataLabels, 39, 0))
+lda.plot_lda_accuracy(trainingData, trainingDataLabels, testingData, testingDataLabels, 39, 0)
