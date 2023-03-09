@@ -150,7 +150,7 @@ def get_projection_matrix(training_data, training_data_labels, dimensions_needed
 
     # Select the top k eigenvectors and return the projection matrix
     projected_data = eigenvectors[:, :dimensions_needed]
-    pd.DataFrame(eigenvectors).to_csv('projection_matrix.csv', index=False)
+    pd.DataFrame(projected_data).to_csv('projection_matrix.csv', index=False)
     return projected_data
 
 

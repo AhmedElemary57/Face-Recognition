@@ -24,7 +24,7 @@ def save_df(np_array, path):
 def read_csv(path):
     return pd.read_csv(path)
 
-projection_matrix = lda.get_projection_matrix(trainingData, trainingDataLabels, 39, 1)
+projection_matrix = lda.get_projection_matrix(trainingData, trainingDataLabels, 39, 0)
 training_data_projected = lda.project_data(trainingData, projection_matrix)
 save_df(training_data_projected, 'training_data_projected.csv')
 testing_data_projected = lda.project_data(testingData, projection_matrix)
