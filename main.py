@@ -1,7 +1,7 @@
+import pandas as pd
+
 import dataloading as dl
 import pca
-import numpy as np
-import pandas as pd
 
 trainingData, trainingDataLabels, testingData, testingDataLabels = dl.load_data()
 

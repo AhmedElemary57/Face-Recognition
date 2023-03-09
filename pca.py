@@ -14,7 +14,9 @@ Auxiliary function to reduce dimensionality of the data matrix.
 @param alpha: A float type number to determine the accuracy.
 @default alpha: 0.8
 """
-def reduce(dimensions, eigenvalues, alpha = 0.8):
+
+
+def reduce(dimensions, eigenvalues, alpha=0.8):
     # Choose the best dimensionality reduction, we reduce dimensionality on the training set only
     lambdasum = np.sum(eigenvalues)
     r = dimensions
@@ -38,6 +40,8 @@ Applies the pca on a data matrix.
     mean: @type NumPy.array, The mean vector.
     )
 """
+
+
 def apply_pca(data):
     # Compute the mean vector
     mean = data.mean()

@@ -1,5 +1,5 @@
-import pandas as pd
 import numpy as np
+
 
 def means_vectors(data, lables):
     # Reshape the DataFrame into groups for each lable
@@ -7,6 +7,7 @@ def means_vectors(data, lables):
     # Calculate the mean for each group
     means_df = grouped_df.mean()
     return means_df
+
 
 def compute_between_class_scatter_matrix(means, overall_mean, n):
     """
@@ -26,12 +27,14 @@ def compute_between_class_scatter_matrix(means, overall_mean, n):
         SB += n[i] * mean_diff.dot(mean_diff.T)
     return SB
 
-def centralize( data, means, labels ):
+
+def centralize(data, means, labels):
     Z = np.zeros(data.shape)
-    for i in range(data.shape[0]): # for each row 'sample' do Di- mean vector
-        Z[i,:] = data[i,:] - means[(int) (labels[i]) -1,:]
+    for i in range(data.shape[0]):  # for each row 'sample' do Di- mean vector
+        Z[i, :] = data[i, :] - means[(int)(labels[i]) - 1, :]
     return Z
 
+
 def within_class_scatter_matrix(Z):
-    S = np.dot(Z.T,Z)
+    S = np.dot(Z.T, Z)
     return S;
