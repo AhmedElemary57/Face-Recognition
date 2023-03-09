@@ -4,20 +4,20 @@ import LDA as lda
 import dataloading as dl
 import pca
 
-trainingData, trainingDataLabels, testingData, testingDataLabels = dl.load_data()
+training, training_labels, testing, testing_labels = dl.load_data('C:\\archive')
 
 # Print the results
-print('Training Data\n', pd.DataFrame(trainingData))
-print('Testing Data\n', pd.DataFrame(testingData))
+print('Training Data\n', pd.DataFrame(training))
+print('Testing Data\n', pd.DataFrame(testing))
 
-data = pd.DataFrame(trainingData)
-A, mean = pca.apply_pca(data)
+# training = pd.DataFrame(training)
+# testing = pd.DataFrame(testing)
+# pca.apply_pca(training, training=1)
+# pca.apply_pca(testing, training=0)
 
-# Keep the data in files
-A.to_csv('reduced_training_set.csv')
-file = open('mean.txt', 'w')
-file.write(str(mean))
-file.close()
-# test lda
-print(lda.calculate_accuracy(1, trainingData, trainingDataLabels, testingData, testingDataLabels, 39, 0))
-lda.plot_lda_accuracy(trainingData, trainingDataLabels, testingData, testingDataLabels, 39, 0)
+print(pca.accuracy(training, training_labels, testing, testing_labels, 1))
+pca.plot_accuracy(training, testing, training_labels, testing_labels)
+
+# # test lda
+# print(lda.calculate_accuracy(1, trainingData, trainingDataLabels, testingData, testingDataLabels, 39, 0))
+# lda.plot_lda_accuracy(trainingData, trainingDataLabels, testingData, testingDataLabels, 39, 0)
