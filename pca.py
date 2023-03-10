@@ -4,6 +4,8 @@ import pandas as pd
 from sklearn import metrics
 from sklearn.neighbors import KNeighborsClassifier
 
+from LDA import get_eigens
+
 
 def reduce(dimensions, eigenvalues, alpha=0.8):
     """
@@ -43,34 +45,47 @@ def apply_pca(data, training):
         mean @:type NumPy.array, The mean vector.
         )
     """
-    # Compute the mean vector
-    mean = data.mean()
-
-    # Compute the centralized matrix
-    Z = data - mean
-
-    # Compute the covariance matrix of Z
-    covariance = Z.cov()
-
-    # Compute the eigenvalues and eigenvectors of the covariance matrix
-    eigenvalues, eigenvectors = np.linalg.eigh(covariance)
-
-    # Apply the dimensionality reduction
-    r = reduce(covariance.shape[0], eigenvalues)
-
-    # Compute the projection matrix
-    U = eigenvectors[:r]
-
-    # The projection operation
-    A = np.dot(Z, np.transpose(U))
-
-    # Keep the data in files
     if training:
+        # Compute the mean vector
+        mean = data.mean()
+
+        # Compute the centralized matrix
+        Z = data - mean
+
+        # Compute the covariance matrix of Z
+        covariance = Z.cov()
+
+        # Compute the eigenvalues and eigenvectors of the covariance matrix
+        eigenvalues, eigenvectors = get_eigens(covariance)
+
+        # Apply the dimensionality reduction
+        r = reduce(covariance.shape[0], eigenvalues)
+
+        # Compute the projection matrix
+        U = eigenvectors[:, :r]
+
+        print(Z.shape)
+        print(U.shape)
+
+        # The projection operation
+        A = np.dot(Z, U)
+
+        # Keep the data in files
         pd.DataFrame(A).to_csv('training.csv')
+        pd.DataFrame(U).to_csv('projection.csv')
         pd.DataFrame(mean).to_csv('training_mean.csv')
+
     else:
+        mean = pd.read_csv('training_mean.csv')
+        mean = mean.drop(mean.columns[0], axis=1)
+        mean = np.squeeze(np.array(mean), axis=1)
+
+        U = pd.read_csv('projection.csv')
+        U = U.drop(U.columns[0], axis=1)
+
+        Z = data.subtract(mean, axis=1)
+        A = np.dot(Z, U)
         pd.DataFrame(A).to_csv('testing.csv')
-        pd.DataFrame(mean).to_csv('testing_mean.csv')
 
     return pd.DataFrame(A), mean
 
@@ -98,13 +113,17 @@ def accuracy(training, training_labels, testing, testing_labels, neighbours):
     # Always try to read from the saved reduced data files.
     try:
         training_reduced = pd.read_csv('training.csv')
+        training_reduced = training_reduced.drop(training_reduced.columns[0], axis=1)
+        print(training_reduced)
     # Compute the reduced data whenever a file is not found.
     except FileNotFoundError:
-        training_reduced = apply_pca(training)
+        training_reduced = apply_pca(training, training=1)
     try:
         testing_reduced = pd.read_csv('testing.csv')
+        testing_reduced = testing_reduced.drop(testing_reduced.columns[0], axis=1)
+        print(training_reduced)
     except FileNotFoundError:
-        testing_reduced = apply_pca(testing)
+        testing_reduced = apply_pca(testing, training=0)
 
     knn = KNeighborsClassifier(neighbours)
     knn.fit(training_reduced, training_labels)

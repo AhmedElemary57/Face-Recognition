@@ -10,10 +10,10 @@ training, training_labels, testing, testing_labels = dl.load_data('C:\\archive')
 print('Training Data\n', pd.DataFrame(training))
 print('Testing Data\n', pd.DataFrame(testing))
 
-# training = pd.DataFrame(training)
-# testing = pd.DataFrame(testing)
+training = pd.DataFrame(training)
+testing = pd.DataFrame(testing)
 # pca.apply_pca(training, training=1)
-# pca.apply_pca(testing, training=0)
+pca.apply_pca(testing, training=0)
 
 print(pca.accuracy(training, training_labels, testing, testing_labels, 1))
 pca.plot_accuracy(training, testing, training_labels, testing_labels)
