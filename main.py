@@ -1,6 +1,6 @@
 import pandas as pd
 
-import LDA as lda
+import lda
 import dataloading as dl
 import pca
 
