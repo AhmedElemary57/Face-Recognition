@@ -185,7 +185,7 @@ def calculate_accuracy(number_of_neighbors, training_data_projected, training_da
     y_predict = knn.predict(testing_data_projected)
     accuracy = metrics.accuracy_score(testing_data_labels, y_predict)
     incorrect_indices = [i for i in range(len(testing_data_labels)) if testing_data_labels[i] != y_predict[i]]
-    print("incorrect_indices\n", incorrect_indices )
+    print("incorrect_indices\n", incorrect_indices)
     return accuracy
 
 
