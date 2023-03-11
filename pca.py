@@ -4,7 +4,8 @@ import pandas as pd
 from sklearn import metrics
 from sklearn.neighbors import KNeighborsClassifier
 
-import pca
+import analysis
+
 from LDA import get_eigens
 
 
@@ -139,6 +140,11 @@ def accuracy(training, training_labels, testing, testing_labels, neighbours):
     knn.fit(trained, training_labels)
     prediction = knn.predict(tested)
     acc = metrics.accuracy_score(testing_labels, prediction)
+
+    false_recognitions = analysis.get_false_recognitions(np.array(testing_labels), np.array(prediction))
+    for false_recognition in false_recognitions:
+        print(false_recognition)
+
     return acc
 
 
