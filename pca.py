@@ -114,21 +114,20 @@ def accuracy(training, training_labels, testing, testing_labels, neighbours):
     try:
         training_reduced = pd.read_csv('training.csv')
         training_reduced = training_reduced.drop(training_reduced.columns[0], axis=1)
-        print(training_reduced)
     # Compute the reduced data whenever a file is not found.
     except FileNotFoundError:
         training_reduced = apply_pca(training, training=1)
     try:
         testing_reduced = pd.read_csv('testing.csv')
         testing_reduced = testing_reduced.drop(testing_reduced.columns[0], axis=1)
-        print(training_reduced)
     except FileNotFoundError:
         testing_reduced = apply_pca(testing, training=0)
 
     knn = KNeighborsClassifier(neighbours)
     knn.fit(training_reduced, training_labels)
     prediction = knn.predict(testing_reduced)
-    return metrics.accuracy_score(testing_labels, prediction)
+    acc = metrics.accuracy_score(testing_labels, prediction)
+    return acc
 
 
 def plot_accuracy(training, testing, training_labels, testing_labels):
@@ -155,8 +154,10 @@ def plot_accuracy(training, testing, training_labels, testing_labels):
     """
     ks = [1, 3, 5, 7]
     accuracies = []
+
     for k in ks:
-        accuracies.append(accuracy(training, testing, training_labels, testing_labels, k))
+        accuracies.append(accuracy(training, training_labels, testing, testing_labels, k))
+
     plt.plot(ks, accuracies)
     plt.xlabel("K")
     plt.ylabel("Accuracy")
