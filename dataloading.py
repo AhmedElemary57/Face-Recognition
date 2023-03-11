@@ -4,15 +4,12 @@ import numpy as np
 import pandas as pd
 from PIL import Image
 
-# Define the path to the dataset folder
-# this is the path to the dataset in colab files.
-dataset_path = 'C:\\archive'
-
 # Define the size of the images
 image_size = (92, 112)
 
 
-def load_data():
+# Define the path to the dataset folder
+def load_data(dataset_path):
     # Initialize the data matrix and label vector
     D = np.zeros((400, image_size[0] * image_size[1]))
     y = np.zeros(400)
