@@ -7,19 +7,19 @@ from sklearn.neighbors import KNeighborsClassifier
 from LDA import get_eigens
 
 
-def reduce(dimensions, eigenvalues, alpha=0.8):
+def _reduce(dimensions, eigenvalues, alpha=0.8):
     """
     Auxiliary function to reduce dimensionality of the data matrix.
 
-    @type dimensions: int
-    @param dimensions: An integer indicating dimensionality of the data.
+    @:type dimensions: int
+    @:param dimensions: An integer indicating dimensionality of the data.
 
-    @type eigenvalues: array[int]
-    @param eigenvalues: A NumPy array of integers holding the eigenvalues of cov matrix.
+    @:type eigenvalues: array[int]
+    @:param eigenvalues: A NumPy array of integers holding the eigenvalues of cov matrix.
 
-    @type alpha: float
-    @param alpha: A float type number to determine the accuracy.
-    @default alpha: 0.8
+    @:type alpha: float
+    @:param alpha: A float type number to determine the accuracy.
+    @:default alpha: 0.8
     """
     # Choose the best dimensionality reduction, we reduce dimensionality on the training set only
     lambdasum = np.sum(eigenvalues)
@@ -28,23 +28,33 @@ def reduce(dimensions, eigenvalues, alpha=0.8):
         ratio = np.sum(eigenvalues[:i]) / lambdasum
         if ratio >= alpha:
             r = i
-    print("=== === Data can be reduced to " + str(r) + " dimensions. === ===")
+    print("====== Data can be reduced to " + str(r) + " dimensions. ======")
     return r
 
 
-def apply_pca(data, training):
+def apply_pca(data, training, alpha=0.8):
     """
     Applies the pca on a data matrix.
 
-    @:param
-    @:type data: Pandas DataFrame
+    @:type data: NumPy Array
+    @:param data: the data to apply pca on
+
+    @:type training: boolean
+    @:param training: boolean (0, 1) to tell whether the application is on training or testing data
+
+    @:type alpha: float
+    @:param alpha: a number between 0 and 1 indicating tolerance percentage
 
     @:return
     @:rtype tuple(
-        A @:type Pandas.DataFrame, The projection matrix after applying PCA
+        A @:type Pandas.DataFrame, The projected matrix after applying PCA
+        U @:type Pandas.DataFrame, The projection matrix to apply PCA
         mean @:type NumPy.array, The mean vector.
         )
     """
+    # Convert the data to a pandas dataframe
+    data = pd.DataFrame(data)
+
     if training:
         # Compute the mean vector
         mean = data.mean()
@@ -59,35 +69,32 @@ def apply_pca(data, training):
         eigenvalues, eigenvectors = get_eigens(covariance)
 
         # Apply the dimensionality reduction
-        r = reduce(covariance.shape[0], eigenvalues)
+        r = _reduce(covariance.shape[0], eigenvalues, alpha)
 
         # Compute the projection matrix
         U = eigenvectors[:, :r]
-
-        print(Z.shape)
-        print(U.shape)
 
         # The projection operation
         A = np.dot(Z, U)
 
         # Keep the data in files
-        pd.DataFrame(A).to_csv('training.csv')
-        pd.DataFrame(U).to_csv('projection.csv')
-        pd.DataFrame(mean).to_csv('training_mean.csv')
+        pd.DataFrame(A).to_csv('pca_trained.csv')
+        pd.DataFrame(U).to_csv('pca_projection.csv')
+        pd.DataFrame(mean).to_csv('pca_mean.csv')
 
     else:
-        mean = pd.read_csv('training_mean.csv')
+        mean = pd.read_csv('pca_mean.csv')
         mean = mean.drop(mean.columns[0], axis=1)
         mean = np.squeeze(np.array(mean), axis=1)
 
-        U = pd.read_csv('projection.csv')
+        U = pd.read_csv('pca_projection.csv')
         U = U.drop(U.columns[0], axis=1)
-
+        print(data.shape)
         Z = data.subtract(mean, axis=1)
         A = np.dot(Z, U)
-        pd.DataFrame(A).to_csv('testing.csv')
+        pd.DataFrame(A).to_csv('pca_tested.csv')
 
-    return pd.DataFrame(A), mean
+    return pd.DataFrame(A), pd.DataFrame(U), mean
 
 
 def accuracy(training, training_labels, testing, testing_labels, neighbours):
@@ -112,20 +119,20 @@ def accuracy(training, training_labels, testing, testing_labels, neighbours):
 
     # Always try to read from the saved reduced data files.
     try:
-        training_reduced = pd.read_csv('training.csv')
-        training_reduced = training_reduced.drop(training_reduced.columns[0], axis=1)
+        trained = pd.read_csv('pca_trained.csv')
+        trained = trained.drop(trained.columns[0], axis=1)
     # Compute the reduced data whenever a file is not found.
     except FileNotFoundError:
-        training_reduced = apply_pca(training, training=1)
+        trained = apply_pca(training, training=1)
     try:
-        testing_reduced = pd.read_csv('testing.csv')
-        testing_reduced = testing_reduced.drop(testing_reduced.columns[0], axis=1)
+        tested = pd.read_csv('pca_tested.csv')
+        tested = tested.drop(tested.columns[0], axis=1)
     except FileNotFoundError:
-        testing_reduced = apply_pca(testing, training=0)
+        tested = apply_pca(testing, training=0)
 
     knn = KNeighborsClassifier(neighbours)
-    knn.fit(training_reduced, training_labels)
-    prediction = knn.predict(testing_reduced)
+    knn.fit(trained, training_labels)
+    prediction = knn.predict(tested)
     acc = metrics.accuracy_score(testing_labels, prediction)
     return acc
 
