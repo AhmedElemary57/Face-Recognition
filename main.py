@@ -21,3 +21,4 @@ pca.plot_accuracy(training, testing, training_labels, testing_labels)
 # # test lda
 # print(lda.calculate_accuracy(1, trainingData, trainingDataLabels, testingData, testingDataLabels, 39, 0))
 # lda.plot_lda_accuracy(trainingData, trainingDataLabels, testingData, testingDataLabels, 39, 0)
+

@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from sklearn import metrics
 from sklearn.neighbors import KNeighborsClassifier
+import pandas as pd
 
 """
 Calculate the mean vector for each class.
@@ -114,7 +115,9 @@ Returns:
 """
 
 
-def get_projection_matrix(training_data, training_data_labels, dimensions_needed):
+def get_projection_matrix(training_data, training_data_labels, dimensions_needed, load):
+    if load == 1:
+        return pd.read_csv('projection_matrix.csv').values
     # Compute the mean vector for each class in the training data
     means = means_vectors(pd.DataFrame(training_data), training_data_labels).values
     print("Means:", pd.DataFrame(means))
@@ -147,9 +150,9 @@ def get_projection_matrix(training_data, training_data_labels, dimensions_needed
     print("Eigenvectors:", eigenvectors)
 
     # Select the top k eigenvectors and return the projection matrix
-    eigenvectors = eigenvectors[:, :dimensions_needed]
-    pd.DataFrame(eigenvectors).to_csv('projection.csv', index=False)
-    return eigenvectors
+    projected_data = eigenvectors[:, :dimensions_needed]
+    pd.DataFrame(eigenvectors).to_csv('projection_matrix.csv', index=False)
+    return projected_data
 
 
 """
@@ -167,16 +170,10 @@ numpy.ndarray: Projected data.
 """
 
 
-def project_data(data, data_labels, dimensions_needed, load_or_compute):
-    if (load_or_compute == 1):
-        projection_matrix = get_projection_matrix(data, data_labels, dimensions_needed)
-    else:
-        projection_matrix = pd.read_csv('projection.csv')
+def project_data(data, projection_matrix):
     print("projection_matrix", pd.DataFrame(projection_matrix))
     print("training_data", pd.DataFrame(data))
-
     new_data = np.dot(data, projection_matrix)
-
     return new_data
 
 
@@ -185,9 +182,9 @@ Calculates the accuracy of KNN classification on the projected data.
 
 Parameters:
     number_of_neighbors (int): Number of nearest neighbors to consider for classification.
-    training_data (numpy.ndarray): Training data to be used for KNN classification.
+    training_data_projected (numpy.ndarray): Training data projected to be used for KNN classification.
+    testing_data_projected (numpy.ndarray): Testing data projected to be used for KNN classification.
     training_data_labels (numpy.ndarray): Labels for the training data.
-    testing_data (numpy.ndarray): Testing data to be used for KNN classification.
     testing_data_labels (numpy.ndarray): Labels for the testing data.
     dimensions_needed (int): Number of dimensions in the lower-dimensional space.
     load_or_compute (int): Specifies whether to compute a new projection matrix (1) or load a precomputed one (0).
@@ -197,10 +194,8 @@ Returns:
 """
 
 
-def calculate_accuracy(number_of_neighbors, training_data, training_data_labels, testing_data, testing_data_labels,
-                       dimensions_needed, load_or_compute):
-    training_data_projected = project_data(training_data, training_data_labels, dimensions_needed, load_or_compute)
-    testing_data_projected = project_data(testing_data, testing_data_labels, dimensions_needed, load_or_compute)
+def calculate_accuracy(number_of_neighbors, training_data_projected, testing_data_projected, training_data_labels,
+                       testing_data_labels):
     knn = KNeighborsClassifier(number_of_neighbors)
     # Train the model using the training set
     knn.fit(training_data_projected, training_data_labels)
@@ -210,13 +205,12 @@ def calculate_accuracy(number_of_neighbors, training_data, training_data_labels,
     return accuracy
 
 
-def plot_lda_accuracy(training_data, training_data_labels, testing_data, testing_data_labels, dimensions_needed,
-                      load_or_compute):
+def plot_lda_accuracy(projected_training_data, training_data_labels, projected_testing_data, testing_data_labels):
     k_values = [1, 3, 5, 7]
     accuracies = []
     for k in k_values:
-        accuracies.append(calculate_accuracy(k, training_data, training_data_labels, testing_data, testing_data_labels,
-                                             dimensions_needed, load_or_compute))
+        accuracies.append(calculate_accuracy(k, projected_training_data, projected_testing_data, training_data_labels,
+                                             testing_data_labels))
     plt.plot(k_values, accuracies)
     plt.xlabel('k_values')
     plt.ylabel('accuracy')
