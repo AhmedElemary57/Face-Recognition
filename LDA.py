@@ -3,8 +3,8 @@ import numpy as np
 import pandas as pd
 from sklearn import metrics
 from sklearn.neighbors import KNeighborsClassifier
-import pandas as pd
 
+import analysis
 
 
 def means_vectors(data, labels):
@@ -95,7 +95,7 @@ def get_eigens(data):
     return sorted_eigenvalues, sorted_eigenvectors
 
 
-def get_projection_matrix(training_data, training_data_labels, dimensions_needed, number_of_group_samples,load):
+def get_projection_matrix(training_data, training_data_labels, dimensions_needed, number_of_group_samples, load):
     """
     Computes the projection matrix needed for linear discriminant analysis using the given training data.
 
@@ -185,8 +185,11 @@ def calculate_accuracy(number_of_neighbors, training_data_projected, training_da
     # Predict the response for test dataset
     y_predict = knn.predict(testing_data_projected)
     accuracy = metrics.accuracy_score(testing_data_labels, y_predict)
-    incorrect_indices = [i for i in range(len(testing_data_labels)) if testing_data_labels[i] != y_predict[i]]
-    print("incorrect_indices\n", incorrect_indices)
+
+    false_recognitions = analysis.get_false_recognitions(testing_data_labels, y_predict)
+    for false_recognition in false_recognitions:
+        print(false_recognition)
+
     return accuracy
 
 
@@ -205,7 +208,7 @@ def plot_lda_accuracy(training_data_projected, training_data_labels, testing_dat
     k_values = [1, 3, 5, 7]
     accuracies = []
     for k in k_values:
-        accuracies.append(calculate_accuracy(k, training_data_projected,  training_data_labels, testing_data_projected,
+        accuracies.append(calculate_accuracy(k, training_data_projected, training_data_labels, testing_data_projected,
                                              testing_data_labels))
     plt.plot(k_values, accuracies)
     plt.xlabel('k_values')
