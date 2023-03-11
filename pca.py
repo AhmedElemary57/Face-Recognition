@@ -4,6 +4,7 @@ import pandas as pd
 from sklearn import metrics
 from sklearn.neighbors import KNeighborsClassifier
 
+import pca
 from LDA import get_eigens
 
 
@@ -83,13 +84,17 @@ def apply_pca(data, training, alpha=0.8):
         pd.DataFrame(mean).to_csv('pca_mean.csv')
 
     else:
-        mean = pd.read_csv('pca_mean.csv')
-        mean = mean.drop(mean.columns[0], axis=1)
-        mean = np.squeeze(np.array(mean), axis=1)
+        try:
+            mean = pd.read_csv('pca_mean.csv')
+            mean = mean.drop(mean.columns[0], axis=1)
+            mean = np.squeeze(np.array(mean), axis=1)
 
-        U = pd.read_csv('pca_projection.csv')
-        U = U.drop(U.columns[0], axis=1)
-        print(data.shape)
+            U = pd.read_csv('pca_projection.csv')
+            U = U.drop(U.columns[0], axis=1)
+        except FileNotFoundError:
+            print('Error: No trained data found. Cannot test data on null.')
+            return
+
         Z = data.subtract(mean, axis=1)
         A = np.dot(Z, U)
         pd.DataFrame(A).to_csv('pca_tested.csv')
@@ -137,7 +142,7 @@ def accuracy(training, training_labels, testing, testing_labels, neighbours):
     return acc
 
 
-def plot_accuracy(training, testing, training_labels, testing_labels):
+def plot_accuracy(training, training_labels, testing, testing_labels):
     """
     Plots the accuracy of the pca against the knn
 
