@@ -1,6 +1,6 @@
 import pandas as pd
 
-import LDA as lda
+import lda
 import dataloading as dl
 import pca
 
@@ -18,7 +18,9 @@ pca.apply_pca(testing, training=0)
 print(pca.accuracy(training, training_labels, testing, testing_labels, 1))
 pca.plot_accuracy(training, testing, training_labels, testing_labels)
 
-# # test lda
-# print(lda.calculate_accuracy(1, trainingData, trainingDataLabels, testingData, testingDataLabels, 39, 0))
-# lda.plot_lda_accuracy(trainingData, trainingDataLabels, testingData, testingDataLabels, 39, 0)
+projection_matrix = lda.get_projection_matrix(training, training_labels, 39, 5, 1)
+training_data_projected = lda.project_data(training, projection_matrix)
+testing_data_projected = lda.project_data(testing, projection_matrix)
 
+print(lda.calculate_accuracy(1, training_data_projected,  training_labels, testing_data_projected, testing_labels))
+lda.plot_lda_accuracy(training_data_projected,  training_labels, testing_data_projected, testing_labels)
