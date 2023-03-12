@@ -142,6 +142,9 @@ def accuracy(training, training_labels, testing, testing_labels, neighbours):
     acc = metrics.accuracy_score(testing_labels, prediction)
 
     false_recognitions = analysis.get_false_recognitions(np.array(testing_labels), np.array(prediction))
+   # incorrect_indices = [i for i in range(len(testing_labels)) if testing_labels[i] != prediction[i]]
+
+   # analysis.samples_of_failed_classification(testing.values, testing_labels, prediction, incorrect_indices)
     for false_recognition in false_recognitions:
         print(false_recognition)
 

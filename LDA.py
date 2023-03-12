@@ -120,7 +120,13 @@ def get_projection_matrix(training_data, training_data_labels, dimensions_needed
     print("Overall Mean:", pd.DataFrame(overall_mean))
 
     # Compute the number of samples in each class (which is assumed to be equal) and equal 5 sample for each class.
-    n = np.zeros(means.shape[0]) + number_of_group_samples
+    if isinstance(number_of_group_samples, (list, tuple)):
+        # If x is a list or tuple
+        n = number_of_group_samples
+    else:
+        # If x is a number
+        n = np.zeros(means.shape[0]) + number_of_group_samples
+
     print("Number of items in each group:", pd.DataFrame(n))
 
     # Compute between-class scatter matrix
@@ -165,7 +171,7 @@ def project_data(data, projection_matrix):
 
 
 def calculate_accuracy(number_of_neighbors, training_data_projected, training_data_labels, testing_data_projected,
-                       testing_data_labels):
+                       testing_data_labels, test_data):
     """
     Calculates the accuracy of KNN classification on the projected data.
 
@@ -187,13 +193,16 @@ def calculate_accuracy(number_of_neighbors, training_data_projected, training_da
     accuracy = metrics.accuracy_score(testing_data_labels, y_predict)
 
     false_recognitions = analysis.get_false_recognitions(testing_data_labels, y_predict)
+    incorrect_indices = [i for i in range(len(testing_data_labels)) if testing_data_labels[i] != y_predict[i]]
+
+    #analysis.samples_of_failed_classification(test_data, testing_data_labels, y_predict, incorrect_indices)
     for false_recognition in false_recognitions:
         print(false_recognition)
 
     return accuracy
 
 
-def plot_lda_accuracy(training_data_projected, training_data_labels, testing_data_projected, testing_data_labels):
+def plot_lda_accuracy(training_data_projected, training_data_labels, testing_data_projected, testing_data_labels, test_data):
     """
     plot the accuracy of lda testing data.
 
@@ -209,7 +218,7 @@ def plot_lda_accuracy(training_data_projected, training_data_labels, testing_dat
     accuracies = []
     for k in k_values:
         accuracies.append(calculate_accuracy(k, training_data_projected, training_data_labels, testing_data_projected,
-                                             testing_data_labels))
+                                             testing_data_labels, test_data))
     plt.plot(k_values, accuracies)
     plt.xlabel('k_values')
     plt.ylabel('accuracy')
