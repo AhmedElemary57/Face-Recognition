@@ -195,7 +195,7 @@ def calculate_accuracy(number_of_neighbors, training_data_projected, training_da
     false_recognitions = analysis.get_false_recognitions(testing_data_labels, y_predict)
     incorrect_indices = [i for i in range(len(testing_data_labels)) if testing_data_labels[i] != y_predict[i]]
 
-    analysis.samples_of_failed_classification(test_data, testing_data_labels, y_predict, incorrect_indices)
+    #analysis.samples_of_failed_classification(test_data, testing_data_labels, y_predict, incorrect_indices)
     for false_recognition in false_recognitions:
         print(false_recognition)
 

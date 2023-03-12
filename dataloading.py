@@ -22,8 +22,9 @@ def load_dataset(dataset_path):
             # Load the image and convert it to a numpy array
             image_path = os.path.join(dataset_path, 's' + str(i), str(j) + '.pgm')
             with Image.open(image_path) as img:
-                img = img.resize(image_size)
-                img = np.asarray(img, int).flatten()
+                img = img.resize((92, 112))  # Resize the image
+                img = np.asarray(img, int).flatten()  # Convert the image to a numpy array
+
                 D[(i - 1) * 10 + j - 1] = img
             # Set the label for the current image
             y[(i - 1) * 10 + j - 1] = int(i)

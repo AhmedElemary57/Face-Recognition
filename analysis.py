@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 from PIL import Image
 import matplotlib.pyplot as plt
+import random
 
 import pca
 import LDA as lda
@@ -88,14 +89,14 @@ def recognize(img_path, number_of_non_faces, number_of_group_samples, method=0):
         pca.plot_accuracy(training, testing, training_labels, testing_labels)
 
     if not method:  # LDA
-        projection_matrix = lda.get_projection_matrix(training, training_labels, 10, number_of_group_samples, 0)
+        projection_matrix = lda.get_projection_matrix(training, training_labels, 1, number_of_group_samples, 1)
 
         training_data_projected = lda.project_data(training, projection_matrix)
         testing_data_projected = lda.project_data(testing, projection_matrix)
 
         print('Accuracy = ' + str(
             lda.calculate_accuracy(1, training_data_projected, training_labels, testing_data_projected,
-                                   testing_labels) * 100) + '%')
+                                   testing_labels, testing) * 100) + '%')
         lda.plot_lda_accuracy(training_data_projected, training_labels, testing_data_projected, testing_labels, testing)
 
 
@@ -126,24 +127,41 @@ def get_false_recognitions(tested_labels, predicted_labels):
 
 def samples_of_failed_classification(test_data, test_labels, predicted_labels, failure_cases):
     # Select a subset of the failure cases to display
-    num_failure_cases_to_display = 4
-    failure_case_indices_to_display = failure_cases[:num_failure_cases_to_display]
+    num_failure_cases_to_display =10
+    failure_case_indices_to_display = random.sample(failure_cases, num_failure_cases_to_display)
 
     # Display the failure cases
-    fig, axs = plt.subplots(2, 2, figsize=(23,33))
+    fig, axs = plt.subplots(5, 5, figsize=(12, 12))
     axs = axs.flatten()
     for i, index in enumerate(failure_case_indices_to_display):
         img = np.array(test_data[index], dtype='int')
         true_label = test_labels[index]
         predicted_label = predicted_labels[index]
-        axs[i].imshow(img.reshape(92, 112), cmap='gray')
-        axs[i].set_title(f'True label: {true_label}, Predicted label: {predicted_label}')
+        axs[i].imshow(img.reshape(112, 92), cmap='gray')
+        axs[i].set_title(f'True label: {true_label}, Predicted label: {predicted_label}',color='red')
         axs[i].axis('off')
     plt.tight_layout()
     plt.show()
 
-"""
-folder_path = "./data"
+def accuracy_vs_number_of_non_faces():
+    folder_path = "./data"
 
-recognize(folder_path, 400, 0)
-"""
+    num_of_non_faces= [50,100,150,200]
+    accuracies =[]
+    for i in num_of_non_faces:
+        training, training_labels, testing, testing_labels = _load(folder_path, i,
+                                                                   400 + i)
+        projection_matrix= lda.get_projection_matrix(training,training_labels,1,[200,i],0)
+        testing_projected= lda.project_data(testing,projection_matrix)
+        training_projected= lda.project_data(training,projection_matrix)
+        accuracy = lda.calculate_accuracy(1,training_projected,training_labels,testing_projected,testing_labels,testing)
+        accuracies.append(accuracy)
+
+
+    plt.plot(num_of_non_faces, accuracies)
+    plt.xlabel('num_of_non_faces')
+    plt.ylabel('accuracy')
+    plt.show()
+
+"""folder_path = "./data"
+recognize(folder_path,200,[200,200],0)"""
